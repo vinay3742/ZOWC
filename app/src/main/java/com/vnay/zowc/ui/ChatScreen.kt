@@ -36,24 +36,20 @@ fun ChatScreen(
     val isLoading = viewModel.isLoading.value
     val listState = rememberLazyListState()
 
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
-        }
+    val backgroundGradient = remember {
+        Brush.verticalGradient(
+            listOf(
+                Color.White,
+                Color.White,
+                Color(0xFFBBDEFB).copy(alpha = 0.4f)
+            )
+        )
     }
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.White,
-                        Color.White,
-                        Color(0xFFBBDEFB).copy(alpha = 0.4f)
-                    )
-                )
-            )
+            .background(backgroundGradient)
     ) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -115,7 +111,6 @@ fun ChatScreen(
                     WelcomeScreen(modifier = Modifier.weight(1f))
                 } else {
                     LazyColumn(
-                        state = listState,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
@@ -174,7 +169,7 @@ fun WelcomeScreen(modifier: Modifier = Modifier) {
         Spacer(Modifier.height(32.dp))
         
         Text(
-            text = "Hi Cv, what's the plan?",
+            text = "Hi, Ask Something!",
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Normal,
                 fontSize = 28.sp,
@@ -190,8 +185,7 @@ fun ChatBubble(message: ChatMessage) {
     
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+            .fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
@@ -229,7 +223,7 @@ fun TypingIndicator() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "ZOWC is thinking...",
+            "zowc is thinking...",
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
@@ -274,7 +268,7 @@ fun ChatInput(
                     )
                 }
 
-                TextField(
+                OutlinedTextField(
                     value = text,
                     onValueChange = onTextChange,
                     modifier = Modifier.weight(1f),
