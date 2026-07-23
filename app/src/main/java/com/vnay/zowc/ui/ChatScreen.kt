@@ -1,8 +1,6 @@
 package com.vnay.zowc.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,14 +9,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -37,70 +36,146 @@ fun ChatScreen(
     val isLoading = viewModel.isLoading.value
     val listState = rememberLazyListState()
 
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
-        }
+    val backgroundGradient = remember {
+        Brush.verticalGradient(
+            listOf(
+                Color.White,
+                Color.White,
+                Color(0xFFBBDEFB).copy(alpha = 0.4f)
+            )
+        )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Rounded.AutoAwesome,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "Gemma AI",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(backgroundGradient)
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                "ZOWC Flash",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 18.sp,
+                                    color = Color.Black.copy(alpha = 0.8f)
+                                )
                             )
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp).padding(start = 4.dp),
+                                tint = Color.Black.copy(alpha = 0.6f)
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.Notes,
+                                contentDescription = "Menu",
+                                tint = Color.Black.copy(alpha = 0.7f)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Rounded.AutoAwesome, // Sparkle icon on right
+                                contentDescription = "Sparkle",
+                                modifier = Modifier.size(22.dp),
+                                tint = Color.Black.copy(alpha = 0.7f)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
                 )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface
-    ) { padding ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            LazyColumn(
-                state = listState,
+            }
+        ) { padding ->
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxSize()
+                    .padding(padding)
             ) {
-                items(messages) { message ->
-                    ChatBubble(message)
-                }
-                if (isLoading && (messages.isEmpty() || messages.last().isUser)) {
-                    item {
-                        TypingIndicator()
+                if (messages.isEmpty()) {
+                    WelcomeScreen(modifier = Modifier.weight(1f))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(messages) { message ->
+                            ChatBubble(message)
+                        }
+                        if (isLoading && (messages.isEmpty() || messages.last().isUser)) {
+                            item {
+                                TypingIndicator()
+                            }
+                        }
                     }
                 }
-            }
 
-            ChatInput(
-                text = inputText,
-                onTextChange = viewModel::onInputTextChange,
-                onSend = viewModel::sendMessage,
-                enabled = !isLoading
+                ChatInput(
+                    text = inputText,
+                    onTextChange = viewModel::onInputTextChange,
+                    onSend = viewModel::sendMessage,
+                    enabled = !isLoading
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun WelcomeScreen(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Multi-color Diamond/Sparkle
+        Box(
+            modifier = Modifier.size(60.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(56.dp),
+                tint = Color.Unspecified
+            )
+            // Simplified multi-color effect using overlaying icons or just a custom tint
+            Icon(
+                imageVector = Icons.Rounded.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(56.dp),
+                tint = Color(0xFF4285F4) // Blue dominant like in screenshot
             )
         }
+        
+        Spacer(Modifier.height(32.dp))
+        
+        Text(
+            text = "Hi, Ask Something!",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Normal,
+                fontSize = 28.sp,
+                color = Color.Black.copy(alpha = 0.9f)
+            )
+        )
     }
 }
 
@@ -109,77 +184,48 @@ fun ChatBubble(message: ChatMessage) {
     val isUser = message.isUser
     
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.Top
     ) {
         if (!isUser) {
-            Avatar(Icons.Rounded.AutoAwesome, MaterialTheme.colorScheme.primaryContainer)
-            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Rounded.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp).padding(top = 4.dp),
+                tint = Color(0xFF4285F4)
+            )
+            Spacer(Modifier.width(12.dp))
         }
 
-        Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 20.dp,
-                        topEnd = 20.dp,
-                        bottomStart = if (isUser) 20.dp else 4.dp,
-                        bottomEnd = if (isUser) 4.dp else 20.dp
-                    )
-                )
-                .background(
-                    if (isUser) MaterialTheme.colorScheme.primary 
-                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                )
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+        Surface(
+            modifier = Modifier.widthIn(max = 300.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = if (isUser) Color(0xFFF0F2F5) else Color.Transparent
         ) {
             Text(
                 text = message.text,
-                color = if (isUser) MaterialTheme.colorScheme.onPrimary 
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                color = Color.Black.copy(alpha = 0.85f),
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 22.sp
+                    lineHeight = 26.sp
                 )
             )
         }
-
-        if (isUser) {
-            Spacer(Modifier.width(8.dp))
-            Avatar(Icons.Rounded.Person, MaterialTheme.colorScheme.secondaryContainer)
-        }
-    }
-}
-
-@Composable
-fun Avatar(icon: ImageVector, containerColor: Color) {
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(containerColor),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
 @Composable
 fun TypingIndicator() {
     Row(
-        modifier = Modifier.padding(start = 40.dp),
+        modifier = Modifier.padding(start = 36.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Gemma is thinking...",
+            "zowc is thinking...",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+            color = Color.Gray
         )
     }
 }
@@ -191,56 +237,98 @@ fun ChatInput(
     onSend: () -> Unit,
     enabled: Boolean
 ) {
-    Surface(
-        tonalElevation = 2.dp,
-        shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+            .navigationBarsPadding()
+            .imePadding()
     ) {
-        Row(
+        Surface(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .navigationBarsPadding()
-                .imePadding(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .height(68.dp),
+            shape = RoundedCornerShape(34.dp),
+            color = Color.White,
+            shadowElevation = 0.5.dp, // Subtle shadow like in screenshot
+            border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.LightGray.copy(alpha = 0.3f))
         ) {
-            TextField(
-                value = text,
-                onValueChange = onTextChange,
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(28.dp)),
-                placeholder = { Text("Ask Gemma something...") },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                enabled = enabled,
-                maxLines = 4
-            )
-            
-            Spacer(Modifier.width(8.dp))
-
-            IconButton(
-                onClick = onSend,
-                enabled = enabled && text.isNotBlank(),
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (text.isNotBlank()) MaterialTheme.colorScheme.primary 
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.Send,
-                    contentDescription = "Send",
-                    tint = if (text.isNotBlank()) MaterialTheme.colorScheme.onPrimary 
-                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                IconButton(onClick = { }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = "Add",
+                        modifier = Modifier.size(26.dp),
+                        tint = Color.Black.copy(alpha = 0.7f)
+                    )
+                }
+
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = onTextChange,
+                    modifier = Modifier.weight(1f),
+                    placeholder = { 
+                        Text(
+                            "Ask ZOWC",
+                            color = Color.Gray.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                        ) 
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    enabled = enabled,
+                    singleLine = true
                 )
+
+                if (text.isNotBlank()) {
+                    IconButton(onClick = onSend) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.Send,
+                            contentDescription = "Send",
+                            tint = Color(0xFF4285F4)
+                        )
+                    }
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Rounded.Mic,
+                                contentDescription = "Voice",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Black.copy(alpha = 0.7f)
+                            )
+                        }
+                        
+                        Surface(
+                            modifier = Modifier.size(44.dp),
+                            shape = CircleShape,
+                            color = Color(0xFFE3F2FD) // Light blue circle for the waveform icon
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.GraphicEq, // Waveform icon
+                                    contentDescription = "Visual",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = Color(0xFF4285F4)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(2.dp))
+                    }
+                }
             }
         }
     }

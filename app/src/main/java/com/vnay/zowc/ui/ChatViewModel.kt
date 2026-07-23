@@ -42,18 +42,24 @@ class ChatViewModel(private val chatService: ChatService) : ViewModel() {
         _inputText.value = ""
 
         viewModelScope.launch {
-            val botMessage = ChatMessage(text = "", isUser = false)
-            _messages.add(botMessage)
-            val index = _messages.indexOf(botMessage)
-
             var fullText = ""
+
             chatService.sendMessage(text)
-                .onStart { _isLoading.value = true }
-                .onCompletion { _isLoading.value = false }
+                .onStart {
+                    _isLoading.value = true
+                }
+                .onCompletion {
+                    _isLoading.value = false
+                    // 1. Wait until the stream is completely finished
+                    // 2. Wrap the accumulated text into a single ChatMessage
+                    // 3. Push it to the list once, triggering exactly one UI update
+                    if (fullText.isNotBlank()){
+                        _messages.add(ChatMessage(text = fullText, isUser = false))
+                    }
+                }
                 .collect { chunk ->
-                    // Assuming chunk is String for now, will fix if it's Message
+                    // Silently gather the tokens in the background
                     fullText += chunk
-                    _messages[index] = botMessage.copy(text = fullText)
                 }
         }
     }
